@@ -1,23 +1,34 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import useFetchDetails from '../hooks/useFetchDetaisls'
+
 import { useSelector } from 'react-redux'
 import moment from 'moment'
 import Divider from '../components/Divider'
 import useFetch from '../hooks/useFetch'
 import HorizontalScrollCard from '../components/HorizontalScrollCard'
+import VideoPlay from '../components/VideoPlay'
+import UseFetchDet from '../hooks/UseFetchDet'
+
 
 const DetailsPage = () => {
   const params = useParams()
   const imageUrl= useSelector(state=>state.movieoData.imageUrl)
   
-  const {data} = useFetchDetails(`/${params.explore}/${params.id}`)
-  const {data: castData} = useFetchDetails(`/${params?.explore}/${params.id}/credits`)
+  const {data} = UseFetchDet(`/${params.explore}/${params.id}`)
+  const {data: castData} = UseFetchDet(`/${params?.explore}/${params.id}/credits`)
   const {data: similarData} = useFetch(`/${params?.explore}/${params.id}/similar`)
   const {data: recommendData} = useFetch(`/${params?.explore}/${params.id}/recommendations`)
   const director = castData?.crew?.filter(el=>el?.job === "Director")?.map(el=>el.name)?.join(", ")
 
   const writer = castData?.crew?.filter(el=>el?.job ==="Writer")?.map(el=>el?.name)?.join(", ")
+  const [playVideo,setPlayVideo] = useState(false)
+  const [playVideoId,setPlayVideoId] = useState("")
+
+  const handlePlayVideo = (data)=>{
+    setPlayVideoId(data)
+    setPlayVideo(true)
+
+  }
 
   console.log("data",data)
   console.log("cast", castData)
@@ -42,7 +53,8 @@ const DetailsPage = () => {
                       src={imageUrl+data?.poster_path}
                       className='h-80 w-60 object-cover rounded'
                   /> 
-                  
+
+                  <button onClick={()=>handlePlayVideo(data)} className='mt-3 w-full py-2 px-4 text-center bg-white text-black rounded font-bold text-lg hover:bg-gradient-to-l from-red-500 to-orange-500 hover:scale-105 transition-all'>Play Now</button>
               </div>
 
               <div>
@@ -122,9 +134,16 @@ const DetailsPage = () => {
           
               </div>
           </div>
+          <div>
           <HorizontalScrollCard data={similarData} heading={"Similar "+ params?.explore} media_type={params?.explore}/>
           <HorizontalScrollCard data={recommendData} heading={"Recommended "+ params?.explore} media_type={params?.explore}/>
-          
+          </div>
+
+          {
+            playVideo && (
+              <VideoPlay data={playVideoId} close={()=>setPlayVideo(false)} media_type={params?.explore}/>
+            )
+          }
     </div>
   )
 }
